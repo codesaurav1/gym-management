@@ -1,0 +1,21 @@
+name: PHP Version Check
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2.12'
+
+      - name: Verify PHP version
+        run: php -v
+
+      - name: Composer install
+        run: composer install
+
+      - name: Run tests
+        run: vendor/bin/phpunit
