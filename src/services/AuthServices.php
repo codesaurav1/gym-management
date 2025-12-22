@@ -58,7 +58,7 @@ class AuthServices
     }
 
   }
-  public function generateAccessToken($data)
+  public function generateAccessToken(array $data)
   {
     if (!isset($data['refresh_token'])) {
       throw new \Exception("Refresh token is required", 402);
