@@ -1,6 +1,16 @@
 {
-    "require": {
-        "psr/log": "^3.0",
-        "php": "^8.2.12"
+  "name": "saurav/gym-backend",
+  "description": "Gym management backend",
+  "type": "project",
+  "require": {
+    "zircote/swagger-php": "*",
+    "vlucas/phpdotenv": "^5.6",
+    "firebase/php-jwt": "^7.0",
+    "ramsey/uuid": "^4.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
     }
+  }
 }
