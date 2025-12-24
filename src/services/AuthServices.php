@@ -16,7 +16,7 @@ class AuthServices
     $this->jwt = new JWTServices();
   }
 
-  public function signup(array$data)
+  public function signup(array $data)
   {
     $uuid = Uuid::uuid4()->toString();
 
@@ -26,7 +26,8 @@ class AuthServices
       $data['lastname'],
       $data['email'],
       $data['phone'] ?? null,
-      $data['password']
+      $data['password'],
+      $data['role'] ?? 'member'
     );
 
     return ["message" => "User registred successfully"];

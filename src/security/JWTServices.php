@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace App\security;
 
 use Firebase\JWT\JWT;
@@ -12,12 +12,12 @@ class JWTServices
     $this->secert = $_ENV['JWT_SECRET'];
   }
 
-   public function generateTokens(array $user)
+  public function generateTokens(array $user)
   {
     $accessPayload = [
       "iat" => time(),
       "exp" => time() + (60 * 60),
-      "id" => $user['user_id'],
+      "user_id" => $user['user_id'],  
       "firstname" => $user['first_name'],
       "lastname" => $user['last_name'],
       "email" => $user['email'],
@@ -42,24 +42,27 @@ class JWTServices
     ];
   }
 
-  public function findUserId($access_token) {
+  public function findUserId($access_token)
+  {
 
-    $payload = JWT::decode($access_token, new Key($this->secert, 'HS256')); 
+    $payload = JWT::decode($access_token, new Key($this->secert, 'HS256'));
 
     return $payload->id;
   }
 
-  public function verifyRefreshToken(string $refresh_token) {
+  public function verifyRefreshToken(string $refresh_token)
+  {
     $payload = JWT::decode($refresh_token, new Key($this->secert, 'HS256'));
 
-    if($payload->type !== "refresh") {
+    if ($payload->type !== "refresh") {
       throw new \Exception("Invalid token type", 401);
     }
 
     return $payload;
-  } 
+  }
 
-  public function generateAccessTokenFromRefreshToken(array $user) {
+  public function generateAccessTokenFromRefreshToken(array $user)
+  {
     $payload = [
       "lat" => time(),
       "exp" => time() + (60 * 60),
