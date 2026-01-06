@@ -1,25 +1,28 @@
-<?php 
+<?php
 namespace App\middleware;
 
 use App\security\BranchJWT;
 
-class TokenAccesstractor {
+class TokenAccesstractor
+{
 
   private BranchJWT $branchJWT;
 
-  public function __construct() {
+  public function __construct()
+  {
     $this->branchJWT = new BranchJWT();
   }
 
-  public function findUserId() {
+  public function findUserId()   
+  {
 
-     $headers = getallheaders();
-    
+    $headers = getallheaders();
+
     if (!isset($headers['Authorization'])) {
       throw new \Exception('Authorization header not found', 401);
     }
 
-    if(!preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
+    if (!preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
       throw new \Exception('Invalid Authorization header format', 401);
     }
 
@@ -27,13 +30,22 @@ class TokenAccesstractor {
 
     $userId = $this->branchJWT->getUserId($token);
 
-    if(!$userId) {
+    if (!$userId) {
       throw new \Exception('user id not found in token', 401);
     }
 
-    return $userId;   
+    return $userId;
 
   }
-}
 
+  public function getRefreshToken()
+  {
+
+    if (!isset($_COOKIE['RefreshToken'])) {
+      throw new \Exception("Refresh token not found", 401);
+    }
+
+    return $_COOKIE['RefreshToken'];
+  }
+}
 ?>

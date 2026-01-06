@@ -23,8 +23,9 @@ class AuthModel
   }
 
   // Find the user by username
-  public function findUser($email)
+  public function findUserByEmail(string $email): ?array
   {
+
     $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -32,30 +33,73 @@ class AuthModel
     return $result->fetch_assoc();
   }
 
-  public function storeRefreshToken($tokenId,$user_id, $refresh_token)
+  public function storeRefreshToken($tokenId, $user_id, $refresh_token)
   {
     $stmt = $this->db->prepare("INSERT INTO refresh_tokens (token_id,user_id, refresh_token) VALUES (?,?,?)");
-    $stmt->bind_param("sss",$tokenId, $user_id, $refresh_token);
+    $stmt->bind_param("sss", $tokenId, $user_id, $refresh_token);
     $result = $stmt->execute();
     return $result;
   }
 
-  public function verifyRefreshTokenDB($userId, $refreshHashToken) {
+  public function verifyRefreshTokenDB($userId, $refreshHashToken)
+  {
     $stmt = $this->db->prepare("SELECT * FROM refresh_tokens WHERE user_id = ? AND refresh_token
     = ? LIMIT 1");
 
     $stmt->bind_param("ss", $userId, $refreshHashToken);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row;
   }
 
-  public function findUserById(string $userId) {
+  public function findUserById(string $userId)
+  {
     $stmt = $this->db->prepare("SELECT * FROM users WHERE user_id = ? LIMIT 1");
     $stmt->bind_param("s", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     return $result->fetch_assoc();
+  }
+
+  public function updateRefreshToken($userId, $refreshToken)
+  {
+    $stmt = $this->db->prepare("UPDATE refresh_tokens SET  refresh_token = ? WHERE user_id = ?");
+
+    $stmt->bind_param("ss", $refreshToken, $userId);
+    $stmt->execute();
+    $result = $stmt;
+
+    // Get affected rows
+    $affectedRows = $stmt->affected_rows;
+
+    $stmt->close();
+
+    return $affectedRows; // returns 0 or 1
+  }
+
+  public function updateUserRole($userId, $role) {
+    $stmt = $this->db->prepare("UPDATE users SET role = ? WHERE user_id = ?");
+
+    $stmt->bind_param("ss", $role, $userId);
+    $stmt->execute();
+    $result = $stmt;
+
+    // Get affected rows 
+    $affectedRows = $stmt->affected_rows;
+    return $affectedRows;
+  }
+
+  public function ForgetPassword($Email, $hashedPassword)
+  {
+    $sql = "UPDATE users SET password_hash = ? WHERE email = ? ";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bind_param("ss", $hashedPassword, $Email);
+    $stmt->execute();
+    $result = $stmt->affected_rows;
+
+    return $result;
   }
 
 }

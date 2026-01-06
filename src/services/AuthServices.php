@@ -4,16 +4,25 @@ namespace App\services;
 use App\security\JWTServices;
 use App\model\AuthModel;
 use Ramsey\Uuid\Uuid;
+use App\middleware\TokenAccesstractor;
+use App\middleware\setCookie;
 
 class AuthServices
 {
   private AuthModel $model;
   private JWTServices $jwt;
 
+  private TokenAccesstractor $tokenAccesstractor;
+
+  private setCookie $setCookie;
+
   public function __construct()
   {
     $this->model = new AuthModel();
     $this->jwt = new JWTServices();
+    $this->tokenAccesstractor = new TokenAccesstractor();
+    $this->setCookie = new setCookie();
+
   }
 
   public function signup(array $data)
@@ -27,7 +36,6 @@ class AuthServices
       $data['email'],
       $data['phone'] ?? null,
       $data['password'],
-      $data['role'] ?? 'member'
     );
 
     return ["message" => "User registred successfully"];
@@ -35,7 +43,7 @@ class AuthServices
 
   public function login(array $data)
   {
-    $user = $this->model->findUser($data['email']);
+    $user = $this->model->findUserByEmail($data['email']);
 
     if (!$user || !password_verify($data['password'], $user['password_hash'])) {
       throw new \Exception("Invalid credentials", 401);
@@ -49,6 +57,8 @@ class AuthServices
     $refreshToken = $tokens['refresh_token'];
     $refreshTokenHash = hash('sha256', $refreshToken);
 
+    $this->setCookie->setRefreshToken($refreshToken);
+
 
     try {
       $this->model->storeRefreshToken($TokenId, $userId, $refreshTokenHash);
@@ -59,13 +69,32 @@ class AuthServices
     }
 
   }
-  public function generateAccessToken(array $data)
+
+  public function ForgetPassword(array $data):array
   {
-    if (!isset($data['refresh_token'])) {
-      throw new \Exception("Refresh token is required", 402);
+    $Email = $data['email'];
+    $NewPass = $data['new_pass'];
+    $HashPass = password_hash($NewPass, PASSWORD_BCRYPT);
+    $FindUserExit = $this->model->findUserByEmail($Email);
+    
+    if(!$FindUserExit) {
+      return ["success" => false, "error" => "User not found"];
     }
 
-    $refreshToken = $data['refresh_token'];
+    $result =$this->model->forgetPassword($Email, $HashPass);
+
+    return ["success" => true, "message" => "Password changed successfully"];
+  }
+
+
+  public function generateAccessToken()
+  {
+    $refreshToken = $this->tokenAccesstractor->getRefreshToken();
+
+    // Verify refresh token JWT
+    if (!isset($refreshToken)) {
+      throw new \Exception("Refresh token is expired", 402);
+    }
 
     // Verify refresh token JWT
     $payload = $this->jwt->verifyRefreshToken($refreshToken);
@@ -74,6 +103,7 @@ class AuthServices
     // Verify refresh token exist in DB
     $refreshTokenHash = hash('sha256', $refreshToken);
     $refreshTokenExists = $this->model->verifyRefreshTokenDB($userId, $refreshTokenHash);
+
     if (!$refreshTokenExists) {
       throw new \Exception("Invalid refresh token", 401);
     }
@@ -85,11 +115,18 @@ class AuthServices
       throw new \Exception("User not found", 404);
     }
 
-    // Generate new access token ONLY
-    $newAccessToken = $this->jwt->generateAccessTokenFromRefreshToken($user);
+    // Generate new access token from refresh token ONLY
+    $newToken = $this->jwt->generateTokens($user);
+    $refreshToken = $newToken['refresh_token'];
+    $refreshTokenHash = hash('sha256', $refreshToken);
+
+    $this->setCookie->setRefreshToken($newToken['refresh_token']);
+
+    $result = $this->model->updateRefreshToken($userId, $refreshTokenHash);
+
 
     return [
-      "access_token" => $newAccessToken
+      "access_token" => $newToken['access_token']
     ];
 
   }

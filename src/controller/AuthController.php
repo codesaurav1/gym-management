@@ -37,11 +37,29 @@ class AuthController
     }
   }
 
+  public function ForgetPassword()
+  {
+    try{
+      $data = json_decode(file_get_contents('php://input'), true);
+      $result = $this->authServices->ForgetPassword($data);
+
+      if(!isset($result['success']) || $result['success'] === false) {
+        http_response_code(400);
+        echo json_encode($result);
+      }
+
+      http_response_code(200);
+      echo json_encode($result);
+    }catch(\Exception $e) {
+      http_response_code($e->getCode() ?: 400);
+      echo json_encode(["success" => false, "error" => $e->getMessage()]);
+    }
+  }
+
   public function generateAccessToken()
   {
     try {
-      $data = json_decode(file_get_contents('php://input'), true);
-      $tokens = $this->authServices->generateAccessToken($data);
+      $tokens = $this->authServices->generateAccessToken();
 
       http_response_code(200);
       echo json_encode(["success" => true, "tokens" => $tokens]);

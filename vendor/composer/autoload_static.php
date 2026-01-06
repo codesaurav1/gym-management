@@ -50,6 +50,8 @@ class ComposerStaticInit260e327c158a3f56703271298bfecfc1
         'D' => 
         array (
             'Dotenv\\' => 7,
+            'Delight\\Http\\' => 13,
+            'Delight\\Cookie\\' => 15,
         ),
         'B' => 
         array (
@@ -121,6 +123,14 @@ class ComposerStaticInit260e327c158a3f56703271298bfecfc1
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
+        ),
+        'Delight\\Http\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/delight-im/http/src',
+        ),
+        'Delight\\Cookie\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/delight-im/cookie/src',
         ),
         'Brick\\Math\\' => 
         array (

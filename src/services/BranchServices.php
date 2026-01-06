@@ -35,6 +35,8 @@ class BranchServices
 
   public function getAllBranches()
   {
+    $ownerId = $this->tokenAccesstractor->findUserId();
+    
     $branches = $this->branchModel->getAllBranches();
     return $branches;
   }
